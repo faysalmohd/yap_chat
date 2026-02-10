@@ -1,7 +1,7 @@
 import { genToken } from "../lib/util.js";
 import User from "../model/user.model.js";
 import bcrypt from "bcrypt";
-import cloudinary from '../lib/cloudinary.js'
+import cloudinary from "../lib/cloudinary.js";
 
 export const DefaultPath = (req, res) => {
   res.status(404).json({
@@ -60,6 +60,7 @@ export const Signup = async (req, res) => {
     return res.status(500).json({
       status: 0,
       message: "Internal server error at signup",
+      error: error,
     });
   }
 };
@@ -93,9 +94,6 @@ export const Login = async (req, res) => {
       });
     }
 
-    console.log(`this is log\n
-      ${user._id}`)
-
     genToken(user._id, res);
 
     res.status(200).json({
@@ -107,6 +105,7 @@ export const Login = async (req, res) => {
     res.status(500).json({
       status: 0,
       message: "Internal server error at login",
+      error: error,
     });
   }
 };
@@ -121,34 +120,39 @@ export const Logout = (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const { profilePic } = req.body;
-    const userId = req.user._id
-    
+    const userId = req.user._id;
+
     if (!profilePic) {
       return res.status(400).json({
         status: 0,
-        message: "No profile picture found"
-      })
+        message: "No profile picture found",
+      });
     }
 
     if (!userId) {
       return res.status(400).json({
         status: 0,
-        message: "No user found"
-      })
+        message: "No user found",
+      });
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic)
-    const updateduser = await User.findByIdAndUpdate(userId, {profilePic: uploadResponse.secure_url}, {new: true})
+    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+    const updateduser = await User.findByIdAndUpdate(
+      userId,
+      { profilePic: uploadResponse.secure_url },
+      { new: true },
+    );
 
     res.status(200).json({
       status: 1,
-      message: `updated profile picture for ${userId}`
-    })
+      message: `updated profile picture for ${userId}`,
+    });
   } catch (error) {
     res.status(500).json({
       status: 0,
-      message: "Internal server error"
-    })
+      message: "Internal server error",
+      error: error,
+    });
   }
 };
 
@@ -157,12 +161,13 @@ export const checkAuth = (req, res) => {
     res.status(200).json({
       status: 1,
       message: "Authorized user",
-      user: req.user
-    })
+      user: req.user,
+    });
   } catch (error) {
     res.status(500).json({
       status: 0,
-      message: "Internal server error"
-    })
+      message: "Internal server error",
+      error: error,
+    });
   }
-}
+};
